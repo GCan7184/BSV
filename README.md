@@ -52,3 +52,13 @@ graph TB
     style DB fill:#ffc,stroke:#333,stroke-width:2px
     style COMPOSE fill:#ddd,stroke:#333,stroke-width:2px
 ```
+## Стек
+
+- Язык: R
+- Сбор данных: httr, xml2, aRxiv
+- Аналитика: tidymodels, text2vec, topicmodels
+- База данных: DuckDB / PostgreSQL
+- Визуализация: Shiny, plotly, DT
+- API: plumber (MCP-сервер)
+- Инфраструктура: Docker, docker-compose
+- Документация: pkgdown, roxygen2, testthat
