@@ -58,7 +58,7 @@ graph TB
 - Сбор данных: httr, xml2, aRxiv
 - Аналитика: tidymodels, text2vec, topicmodels
 - База данных: DuckDB / PostgreSQL
-- Визуализация: Shiny, plotly, DT
+- Визуализация: Shiny, DT, plotly
 - API: plumber (MCP-сервер)
 - Инфраструктура: Docker, docker-compose
 - Документация: pkgdown, roxygen2, testthat
