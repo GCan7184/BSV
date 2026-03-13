@@ -18,7 +18,7 @@ graph TB
             end
 
             subgraph "Container: Database"
-                DB[(DuckDB/PostgreSQL<br>Volume: db_data)]
+                DB[(DuckDB<br>Volume: db_data)]
             end
 
             subgraph "Container: Processing"
