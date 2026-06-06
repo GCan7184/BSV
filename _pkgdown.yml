@@ -1,0 +1,57 @@
+url: https://your-team.github.io/bsv
+
+template:
+  bootstrap: 5
+  bslib:
+    primary: "#605ca8"
+    base_font: "Inter"
+
+home:
+  title: "BSV — Base of Security Vectors"
+  description: >
+    R-package for harvesting arXiv cybersecurity papers, enriching them
+    with MITRE ATT&CK techniques, and serving through a plumber2 API.
+
+navbar:
+  structure:
+    left:  [intro, reference, articles, news]
+    right: [github]
+  components:
+    github:
+      icon: fa-github
+      href: https://github.com/your-team/bsv
+
+reference:
+  - title: "ETL — arXiv harvesting"
+    contents:
+      - fetch_arxiv
+      - parse_arxiv_xml
+      - clean_text
+  - title: "Database"
+    contents:
+      - db_connect
+      - db_pool
+      - db_disconnect
+      - db_init_schema
+      - save_articles
+      - get_unprocessed_articles
+      - save_mitre_mapping
+      - mark_processed
+  - title: "ML / MITRE enrichment"
+    contents:
+      - enrich_mitre
+      - enrich_mitre_rules
+      - enrich_mitre_llm
+      - mitre_rules_dict
+  - title: "API helpers"
+    contents:
+      - api_health
+      - api_articles_list
+      - api_articles_by_id
+      - api_search
+      - api_mitre_stats
+
+articles:
+  - title: "User guides"
+    contents:
+      - bsv-intro

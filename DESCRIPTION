@@ -1,0 +1,47 @@
+Package: bsv
+Type: Package
+Title: BSV - Base of Security Vectors
+Version: 0.1.0
+Authors@R: c(
+    person("Maksim", "Bovin", role = c("aut", "cre"), email = "bovin@example.com"),
+    person("Daria", "Kurilenko", role = "aut", email = "kurilenko@example.com"),
+    person("Anastasia", "Timonina", role = "aut", email = "timonina@example.com"))
+Description: Analytical toolkit for harvesting cybersecurity-related papers
+    from arXiv, enriching them with MITRE ATT&CK techniques (via rules or LLM),
+    storing results in PostgreSQL and exposing them through a plumber2 REST API
+    that backs both a Shiny dashboard and an MCP server for AI agents.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Depends: R (>= 4.2.0)
+Imports:
+    httr2,
+    xml2,
+    dplyr,
+    tibble,
+    tidyr,
+    purrr,
+    stringr,
+    lubridate,
+    DBI,
+    RPostgres,
+    pool,
+    jsonlite,
+    glue,
+    rlang
+Suggests:
+    plumber,
+    shiny,
+    shinydashboard,
+    DT,
+    plotly,
+    ellmer,
+    testthat (>= 3.0.0),
+    knitr,
+    rmarkdown,
+    usethis
+Config/testthat/edition: 3
+RoxygenNote: 7.3.1
+VignetteBuilder: knitr
+URL: https://github.com/your-team/bsv
+BugReports: https://github.com/your-team/bsv/issues

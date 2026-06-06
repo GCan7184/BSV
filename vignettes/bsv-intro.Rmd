@@ -1,0 +1,127 @@
+---
+title: "Getting started with BSV"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Getting started with BSV}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", eval = FALSE)
+```
+
+# BSV — Base of Security Vectors
+
+`bsv` is an R-package that harvests cybersecurity research from arXiv,
+enriches it with MITRE ATT&CK techniques and exposes the result through
+a REST API (consumed by a Shiny dashboard and an MCP server for
+AI agents).
+
+The data flow is strictly:
+
+```
+arXiv API   ─►  ETL (R)   ─►  PostgreSQL   ─►  plumber2 API  ─►  Shiny / MCP
+```
+
+No component except the API touches the database directly. This makes
+the data layer pluggable and the consumers easy to test.
+
+## 1. Quick start (local R, no Docker)
+
+You need a running PostgreSQL. The easiest way is `docker compose up db`,
+then run R against it:
+
+```{r}
+library(bsv)
+
+Sys.setenv(POSTGRES_HOST = "localhost",
+           POSTGRES_USER = "bsv",
+           POSTGRES_PASSWORD = "changeme",
+           POSTGRES_DB = "bsv")
+
+con <- db_connect()
+db_init_schema(con)
+
+df <- fetch_arxiv("cs.CR", max_results = 25)
+df
+
+save_articles(con, df)
+
+res <- enrich_mitre(con, limit = 25, method = "rules")
+res
+
+db_disconnect(con)
+```
+
+## 2. Launching the API
+
+In a separate R session:
+
+```{r}
+plumber::pr(system.file("api", "plumber.R", package = "bsv")) |>
+  plumber::pr_run(host = "0.0.0.0", port = 8000)
+```
+
+Visit `http://localhost:8000/__docs__/` for the Swagger UI.
+
+## 3. Launching the Shiny dashboard
+
+```{r}
+Sys.setenv(BSV_API_URL = "http://localhost:8000")
+shiny::runApp(system.file("shiny", package = "bsv"))
+```
+
+## 4. Full stack via docker-compose
+
+From the project root:
+
+```bash
+cp .env.example .env
+docker compose up --build
+```
+
+This brings up four containers: `db`, `api`, `shiny`, `mcp`. Open
+<http://localhost:3838> for the dashboard and POST JSON-RPC to
+<http://localhost:8001/rpc> for the MCP endpoint.
+
+## 5. Using LLM enrichment
+
+By default `BSV_LLM_PROVIDER=none`, which uses the keyword-based rules in
+`mitre_rules_dict()`. To switch to a real LLM, set in `.env`:
+
+```bash
+BSV_LLM_PROVIDER=openai
+BSV_LLM_API_KEY=sk-...
+BSV_LLM_MODEL=gpt-4o-mini
+```
+
+or, for a local Ollama:
+
+```bash
+BSV_LLM_PROVIDER=ollama
+BSV_LLM_MODEL=llama3.1
+BSV_OLLAMA_URL=http://ollama:11434
+```
+
+Then re-run `enrich_mitre(con, method = "llm")`. The HITL principle
+applies: review the produced mappings in the dashboard and re-run on
+the subset you disagree with.
+
+## 6. MCP — talking to BSV from an AI agent
+
+The MCP server speaks JSON-RPC 2.0 over HTTP. Available tools:
+
+| Tool                  | Purpose                                       |
+| --------------------- | --------------------------------------------- |
+| `search_threat_intel` | Free-text search across title + abstract      |
+| `list_articles`       | List with pagination                          |
+| `get_article`         | One article + its MITRE mappings              |
+| `mitre_stats`         | Aggregated counts per tactic / technique      |
+
+Quick sanity check with `curl`:
+
+```bash
+curl -X POST http://localhost:8001/rpc -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
+```

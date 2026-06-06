@@ -1,0 +1,67 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: bsv-db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-bsv}
+      POSTGRES_USER: ${POSTGRES_USER:-bsv}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./inst/sql:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-bsv} -d ${POSTGRES_DB:-bsv}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: .
+    image: bsv:latest
+    container_name: bsv-api
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-bsv}
+      POSTGRES_USER: ${POSTGRES_USER:-bsv}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      BSV_API_HOST: 0.0.0.0
+      BSV_API_PORT: 8000
+      BSV_LLM_PROVIDER: ${BSV_LLM_PROVIDER:-none}
+    command: ["Rscript", "/app/inst/api/run_api.R"]
+    ports:
+      - "8000:8000"
+
+  shiny:
+    image: bsv:latest
+    container_name: bsv-shiny
+    depends_on:
+      - api
+    environment:
+      BSV_API_URL: http://api:8000
+      BSV_SHINY_HOST: 0.0.0.0
+      BSV_SHINY_PORT: 3838
+    command: ["Rscript", "/app/inst/shiny/run_shiny.R"]
+    ports:
+      - "3838:3838"
+
+  mcp:
+    image: bsv:latest
+    container_name: bsv-mcp
+    depends_on:
+      - api
+    environment:
+      BSV_API_URL: http://api:8000
+      BSV_MCP_HOST: 0.0.0.0
+      BSV_MCP_PORT: 8001
+    command: ["Rscript", "/app/inst/mcp/run_mcp.R"]
+    ports:
+      - "8001:8001"
+
+volumes:
+  pgdata:
